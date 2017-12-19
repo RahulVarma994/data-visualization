@@ -11,6 +11,8 @@ library(flexdashboard)
 library(ggplot2)
 library(dplyr)
 library(plotly)
+library(RColorBrewer)
+library(tm)
 iot <- read.csv(file = "D:/datavis/data_iot_temperature.csv")
 iot<-iot%>%mutate(Hour= format(as.POSIXct(strptime(iot$date,"%Y-%m-%d %H:%M")),"%H"))
 iot$date <- as.Date(iot$date)
@@ -20,9 +22,31 @@ niot<-niot%>%mutate(day= format(as.Date(iot$date,'%d-%m-%Y %H:%M'),'%d'))
 
 ```
 
+
+ROW
+-----------------------------------------------------------------------
+### MAX TEMPERATURE
+```{r}
+hightemper=max(niot$temperature)
+valueBox(hightemper, icon="fa-cloud-upload",color="RED")
+```
+
+### AVG TEMPERATURE
+```{r}
+avg_temper=round(mean(niot$temperature))
+valueBox(avg_temper,icon="fa-cloud",color="green")
+```
+
+### LOW TEMPERATURE
+```{r}
+lowtemp = min(niot$temperature)
+valueBox(lowtemp,icon="fa-cloud-download",color="ORANGE")
+```
+
+
+
 rows 
 -----------------------------------------------------------------------
-
 ### Day wise compute the average temperature and visualize them in a line chart
 
 ```{r}
@@ -37,18 +61,17 @@ ggplotly(lineplot)
 ### each day how many times the temperature has exceeded the lower limit and upper limit
 
 ```{r}
-
-
 temperature_taken = c("low","high")
 niot = niot%>%mutate(category=cut(temperature, breaks=c(-Inf, 25, 30, Inf), labels=c("low","middle","high")))
 tempchange = niot%>%filter( category%in%temperature_taken  )%>% group_by(day,category)%>%summarise(sum = n())
-gg = ggplot(tempchange,aes(x=day,y=sum,fill=category))+geom_bar(stat ="identity") 
+gg = ggplot(tempchange,aes(x=day,y=sum,fill=category))+geom_bar(stat='identity') 
+
 ggplotly(gg)
 ```
 
 rows
 --------------------------------------------------------------------------------
-### a tile map where it represent average temperature
+### a tile map where it represent average temperature in each day
 
 ```{r}
 
